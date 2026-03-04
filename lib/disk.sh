@@ -51,7 +51,8 @@ disk_select() {
         3>&1 1>&2 2>&3)
 
     if [ -n "$selected" ]; then
-        echo "/dev/$selected"
+        disk=$(echo "$selected" | awk '{print $1}')
+        echo "/dev/$disk"
     else
         echo ""
     fi
