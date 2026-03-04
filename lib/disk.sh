@@ -12,10 +12,11 @@ disk_validate() {
     [[ -b "$DISK" ]] || error "Invalid disk device: $DISK"
 
     if mount | grep -q "$DISK"; then
-        error "Disk already mounted"
+        error "Disk already mounted: $DISK"
     fi
 
-    log "Disk validated: $DISK"
+    log "INFO" "Disk validated: $DISK"
+    export DISK
 }
 
 # ==========================================
@@ -24,18 +25,18 @@ disk_validate() {
 
 disk_partition() {
 
-    log "Wiping disk"
+    log "INFO" "Wiping disk"
 
     retry wipefs -af "$DISK"
 
     retry parted -s "$DISK" mklabel gpt
 
-    log "Creating boot partition"
+    log "INFO" "Creating boot partition"
 
     retry parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
     retry parted -s "$DISK" set 1 esp on
 
-    log "Creating root partition"
+    log "INFO" "Creating root partition"
 
     retry parted -s "$DISK" mkpart primary ext4 513MiB 100%
 
@@ -63,13 +64,13 @@ detect_partitions() {
         ROOT_PART="${DISK}2"
     fi
 
-    [[ -b "$BOOT_PART" ]] || error "Boot partition not found"
-    [[ -b "$ROOT_PART" ]] || error "Root partition not found"
+    [[ -b "$BOOT_PART" ]] || error "Boot partition not found: $BOOT_PART"
+    [[ -b "$ROOT_PART" ]] || error "Root partition not found: $ROOT_PART"
 
     export BOOT_PART ROOT_PART
 
-    log "Boot partition: $BOOT_PART"
-    log "Root partition: $ROOT_PART"
+    log "INFO" "Boot partition: $BOOT_PART"
+    log "INFO" "Root partition: $ROOT_PART"
 }
 
 # ==========================================
@@ -78,11 +79,14 @@ detect_partitions() {
 
 disk_format() {
 
-    log "Formatting boot partition"
+    [ -z "${BOOT_PART:-}" ] && error "BOOT_PART not set — run disk_partition first"
+    [ -z "${ROOT_PART:-}" ] && error "ROOT_PART not set — run disk_partition first"
+
+    log "INFO" "Formatting boot partition: $BOOT_PART"
 
     retry mkfs.fat -F32 "$BOOT_PART"
 
-    log "Formatting root partition"
+    log "INFO" "Formatting root partition: $ROOT_PART"
 
     retry mkfs.ext4 -F "$ROOT_PART"
 }
@@ -93,15 +97,18 @@ disk_format() {
 
 disk_mount() {
 
-    log "Mounting root"
+    [ -z "${ROOT_PART:-}" ] && error "ROOT_PART not set — run disk_partition first"
+    [ -z "${BOOT_PART:-}" ] && error "BOOT_PART not set — run disk_partition first"
+
+    log "INFO" "Mounting root: $ROOT_PART -> /mnt"
 
     retry mount "$ROOT_PART" /mnt
 
     mkdir -p /mnt/boot
 
-    log "Mounting boot"
+    log "INFO" "Mounting boot: $BOOT_PART -> /mnt/boot"
 
     retry mount "$BOOT_PART" /mnt/boot
 
-    log "Mount successful"
+    log "INFO" "Mount successful"
 }

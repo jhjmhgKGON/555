@@ -16,12 +16,12 @@ system_install_base() {
     local packages=("base" "base-devel" "linux" "linux-firmware")
     
     if [ -n "${MICROCODE:-}" ]; then
-        packages+=("$MICROCODE")
+        packages+=("${MICROCODE}")
     fi
     
-    packages+=("${GPU_DRIVERS[@]}")
+    packages+=("${GPU_DRIVERS[@]:-mesa}")
     
-    if [ "$ENCRYPTION" = "luks2+lvm" ]; then
+    if [ "${ENCRYPTION:-none}" = "luks2+lvm" ]; then
         packages+=("lvm2")
     fi
     
@@ -30,7 +30,7 @@ system_install_base() {
         log "INFO" "Adding GRUB package for BIOS boot"
     fi
     
-    if [ "$INSTALL_MODE" = "dual" ]; then
+    if [ "${INSTALL_MODE:-single}" = "dual" ]; then
         packages+=("os-prober")
         log "INFO" "Adding os-prober for dual boot detection"
     fi
