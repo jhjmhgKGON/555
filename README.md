@@ -3,10 +3,10 @@
     
     <br><br>
 
-    # 𝕶𝕴𝕽𝕬 𝕴𝕹𝕾𝕿𝕬𝕷𝕷𝕰𝕽
-    ### 𝕿𝖍𝖊 𝕬𝖇𝖘𝖔𝖑𝖚𝖙𝖊 𝕬𝖗𝖈𝖍 𝕷𝖎𝖓𝖚𝖝 𝕰𝖝𝖊𝖈𝖚𝖙𝖎𝖔𝖓
+    <h1>𝕶𝕴𝕽𝕬 𝕴𝕹𝕾𝕿𝕬𝕷𝕷𝕰𝕽</h1>
+    <h3>𝕿𝖍𝖊 𝕬𝖇𝖘𝖔𝖑𝖚𝖙𝖊 𝕬𝖗𝖈𝖍 𝕷𝖎𝖓𝖚𝖝 𝕰𝖝𝖊𝖈𝖚𝖙𝖎𝖔𝖓</h3>
 
-    *"I'll take a potato chip... and INSTALL ARCH LINUX!"*
+    <p><i>"I'll take a potato chip... and INSTALL ARCH LINUX!"</i></p>
 
     <br>
 
@@ -48,11 +48,9 @@
 
 <br><br>
 
-## 📜 𝕿𝖍𝖊 𝕽𝖚𝖑𝖊𝖘 𝖔𝖋 𝕰𝖝𝖊𝖈𝖚𝖙𝖎𝖔𝖓 (𝕼𝖚𝖎𝖈𝖐 𝕾𝖙𝖆𝖗𝖙)
-
-<table width="100%">
-<tr>
-<td width="100%" style="padding: 20px;">
+<div align="center">
+    <h2>📜 𝕿𝖍𝖊 𝕽𝖚𝖑𝖊𝖘 𝖔𝖋 𝕰𝖝𝖊𝖈𝖚𝖙𝖎𝖔𝖓 (𝕼𝖚𝖎𝖈𝖐 𝕾𝖙𝖆𝖗𝖙)</h2>
+</div>
 
 ### 1. 𝕿𝖍𝖊 𝕻𝖗𝖊𝖕𝖆𝖗𝖆𝖙𝖎𝖔𝖓
 Boot into the official Arch Linux installation media and confirm your connection to the outside world.
@@ -74,30 +72,22 @@ Even Kira needs root to change the world. Execute the script and let the judgmen
 sudo ./kira.sh
 ```
 
-</td>
-</tr>
-</table>
-
 <br><br>
 
 <div align="center">
     <h2>🧠 𝕻𝖗𝖊𝖘𝖊𝖊𝖉 (𝕬𝖚𝖙𝖔𝖒𝖆𝖙𝖊𝖉 𝕸𝖔𝖉𝖊)</h2>
-    <table width="100%" style="border: none;">
-        <tr style="border: none;">
-            <td width="100%" style="border: none; padding: 20px;">
-                <p>Don't want to answer questions? Want to mass-install? Use a <b>Preseed</b>. By providing a <code>.conf</code> file, KIRA will bypass the interface and silently execute your precise will.</p>
-                <br>
+    <p>Don't want to answer questions? Want to mass-install? Use a <b>Preseed</b>. By providing a <code>.conf</code> file, KIRA will bypass the interface and silently execute your precise will.</p>
+</div>
+
 ```bash
 # Use the provided production configuration file
 sudo ./kira.sh --preseed preseed/production.conf
 ```
-                <br>
-                <p><i>Tip: Check <code>preseed/production.conf</code> for a perfect template! You can enforce absolute automation using <code>AUTO=true</code>.</i></p>
-                <br>
-                <img src="https://media.giphy.com/media/o2KLYPem407CM/giphy.gif" width="100%" style="border-radius: 8px;" alt="Writing Names">
-            </td>
-        </tr>
-    </table>
+
+<div align="center">
+    <p><i>Tip: Check <code>preseed/production.conf</code> for a perfect template! You can enforce absolute automation using <code>AUTO=true</code>.</i></p>
+    <br>
+    <img src="https://media.giphy.com/media/o2KLYPem407CM/giphy.gif" width="60%" style="border-radius: 8px;" alt="Writing Names">
 </div>
 
 <br><br>
