@@ -10,7 +10,7 @@ log() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     message=$(echo "$message" | sed -E 's/(passphrase|password|CRYPT_PASS)=[^ ]*/\1=***REDACTED***/g')
-    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+    echo "[$timestamp] [$level] $message" >> "${LOG_FILE:-/tmp/kira-installer.log}"
     
     if [ "${TERM:-}" != "dumb" ]; then
         case "$level" in
@@ -20,6 +20,28 @@ log() {
             *)       echo "[$level] $message" ;;
         esac
     fi
+}
+
+error() {
+    log "ERROR" "$*"
+    exit 1
+}
+
+# ======================================================================
+# RETRY HELPER
+# ======================================================================
+retry() {
+    local attempts=5
+    local count=0
+
+    until "$@"; do
+        ((count++))
+        if ((count >= attempts)); then
+            error "Command failed after $attempts attempts: $*"
+        fi
+        log "WARNING" "Retrying (attempt $count/$attempts): $*"
+        sleep 2
+    done
 }
 
 # ======================================================================
