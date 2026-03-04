@@ -114,41 +114,48 @@ get_disk_size_gb() {
 # ======================================================================
 
 disk_create_partitions() {
-    local disk="$1"
+    local DISK="$1"
     ui_progress 15 "Creating partitions..."
-
-    local efi_start="1MiB"
-    local efi_end="513MiB"
-    local root_start="$efi_end"
-    local root_end="100%"
 
     if [ -d /sys/firmware/efi ]; then
         # =========================
         # UEFI (GPT)
         # =========================
-        execute parted -s "$disk" mklabel gpt
-
-        # EFI Partition
-        execute parted -s "$disk" mkpart primary fat32 "$efi_start" "$efi_end"
-        execute parted -s "$disk" set 1 esp on
-
-        BOOT_PART=$(get_partition "$disk" 1)
+        execute parted -s "$DISK" mklabel gpt
 
         case "$ENCRYPTION" in
             luks2)
-                execute parted -s "$disk" mkpart primary "$root_start" "$root_end"
-                ROOT_PART=$(get_partition "$disk" 2)
+                # create partitions
+                execute parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
+                execute parted -s "$DISK" set 1 esp on
+                execute parted -s "$DISK" mkpart primary 513MiB 100%
+
+                # define partition variables
+                BOOT_PART=$(get_partition "$DISK" 1)
+                ROOT_PART=$(get_partition "$DISK" 2)
                 LVM_PART=""
                 ;;
             luks2+lvm)
-                execute parted -s "$disk" mkpart primary "$root_start" "$root_end"
-                execute parted -s "$disk" set 2 lvm on
-                LVM_PART=$(get_partition "$disk" 2)
+                # create partitions
+                execute parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
+                execute parted -s "$DISK" set 1 esp on
+                execute parted -s "$DISK" mkpart primary 513MiB 100%
+                execute parted -s "$DISK" set 2 lvm on
+
+                # define partition variables
+                BOOT_PART=$(get_partition "$DISK" 1)
+                LVM_PART=$(get_partition "$DISK" 2)
                 ROOT_PART=""
                 ;;
             *)
-                execute parted -s "$disk" mkpart primary ext4 "$root_start" "$root_end"
-                ROOT_PART=$(get_partition "$disk" 2)
+                # create partitions
+                execute parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
+                execute parted -s "$DISK" set 1 esp on
+                execute parted -s "$DISK" mkpart primary ext4 513MiB 100%
+
+                # define partition variables
+                BOOT_PART=$(get_partition "$DISK" 1)
+                ROOT_PART=$(get_partition "$DISK" 2)
                 LVM_PART=""
                 ;;
         esac
@@ -157,25 +164,31 @@ disk_create_partitions() {
         # =========================
         # BIOS (MBR)
         # =========================
-        execute parted -s "$disk" mklabel msdos
+        execute parted -s "$DISK" mklabel msdos
 
         case "$ENCRYPTION" in
             luks2|luks2+lvm)
-                execute parted -s "$disk" mkpart primary 1MiB 100%
-                execute parted -s "$disk" set 1 boot on
-                LVM_PART=$(get_partition "$disk" 1)
+                # create partitions
+                execute parted -s "$DISK" mkpart primary 1MiB 100%
+                execute parted -s "$DISK" set 1 boot on
+
+                # define partition variables
+                LVM_PART=$(get_partition "$DISK" 1)
                 ROOT_PART=""
                 ;;
             *)
-                execute parted -s "$disk" mkpart primary ext4 1MiB 100%
-                execute parted -s "$disk" set 1 boot on
-                ROOT_PART=$(get_partition "$disk" 1)
+                # create partitions
+                execute parted -s "$DISK" mkpart primary ext4 1MiB 100%
+                execute parted -s "$DISK" set 1 boot on
+
+                # define partition variables
+                ROOT_PART=$(get_partition "$DISK" 1)
                 LVM_PART=""
                 ;;
         esac
     fi
 
-    execute partprobe "$disk" || true
+    execute partprobe "$DISK" || true
     udevadm settle || true
 
     log "INFO" "Partitions created:"
