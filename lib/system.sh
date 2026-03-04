@@ -1,6 +1,9 @@
-#!/bin/bash
-# System configuration - base install, mkinitcpio, users
+#!/usr/bin/env bash
+# 🍎 KIRA INSTALLER — The Pulse (System Configuration, Packages, Users)
 
+# ======================================================================
+# DETECT GPU & MICROCODE
+# ======================================================================
 system_detect_gpu() {
     local vendor
     vendor=$(lspci 2>/dev/null | grep -E "VGA|3D" | grep -i -o -E "nvidia|amd|intel" | head -1 | tr '[:upper:]' '[:lower:]' || true)
@@ -13,6 +16,9 @@ system_detect_gpu() {
     export GPU_DRIVERS
 }
 
+# ======================================================================
+# INSTALL BASE PACKAGES (Pacstrap)
+# ======================================================================
 system_install_base() {
     local packages=("base" "base-devel" "linux" "linux-firmware")
     
@@ -42,6 +48,9 @@ system_install_base() {
     execute pacstrap /mnt "${packages[@]}"
 }
 
+# ======================================================================
+# CONFIGURE MKINITCPIO (Initramfs)
+# ======================================================================
 system_configure_mkinitcpio() {
     local hooks="base udev autodetect modconf keyboard keymap consolefont block"
 
@@ -60,6 +69,9 @@ system_configure_mkinitcpio() {
     arch-chroot /mnt mkinitcpio -P
 }
 
+# ======================================================================
+# CONFIGURE SYSTEM IDENTITIES & PASSWORDS
+# ======================================================================
 system_configure() {
     # Write hostname and hosts
     echo "$HOSTNAME" > /mnt/etc/hostname

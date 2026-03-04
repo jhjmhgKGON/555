@@ -1,6 +1,9 @@
-#!/bin/bash
-# Encryption handling - LUKS2, LVM
+#!/usr/bin/env bash
+# 🍎 KIRA INSTALLER — The Vault (LUKS2 Encryption & LVM Setup)
 
+# ======================================================================
+# ENCRYPTION SETUP
+# ======================================================================
 encryption_setup() {
     if [ -n "${ENCRYPTION:-}" ]; then
         log "INFO" "Encryption already set to $ENCRYPTION"

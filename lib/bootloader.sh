@@ -1,6 +1,9 @@
-#!/bin/bash
-# Bootloader installation - systemd-boot, GRUB, microcode
+#!/usr/bin/env bash
+# 🍎 KIRA INSTALLER — The Crown (Bootloader & Microcode)
 
+# ======================================================================
+# DETECT CPU MICROCODE
+# ======================================================================
 bootloader_detect_microcode() {
     if grep -q "GenuineIntel" /proc/cpuinfo; then
         MICROCODE="intel-ucode"; MICROCODE_FILE="intel-ucode.img"
@@ -12,10 +15,16 @@ bootloader_detect_microcode() {
     export MICROCODE MICROCODE_FILE
 }
 
+# ======================================================================
+# DETECT TARGET BOOT MODE
+# ======================================================================
 bootloader_target_mode() {
     arch-chroot "$1" test -d /sys/firmware/efi 2>/dev/null && echo "uefi" || echo "bios"
 }
 
+# ======================================================================
+# INSTALL MAIN BOOTLOADER
+# ======================================================================
 bootloader_install() {
     local uuid=""
 
@@ -42,6 +51,9 @@ bootloader_install() {
     fi
 }
 
+# ======================================================================
+# INSTALL SYSTEMD-BOOT (UEFI)
+# ======================================================================
 _bootloader_install_systemd() {
     local uuid="$1"
     execute arch-chroot /mnt bootctl install
@@ -81,6 +93,9 @@ timeout 4
 EOF
 }
 
+# ======================================================================
+# INSTALL GRUB (BIOS / DUAL LVM SUPPORT)
+# ======================================================================
 _bootloader_install_grub() {
     local uuid="$1"
     execute arch-chroot /mnt grub-install "$SELECTED_DISK"

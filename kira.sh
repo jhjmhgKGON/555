@@ -1,5 +1,5 @@
-#!/bin/bash
-# Kira Arch Installer - Main Entry Point
+#!/usr/bin/env bash
+# 🍎 KIRA INSTALLER — The Mastermind (Main Entry Point)
 # Version: 15.0.0-KIRA-FINAL
 # "I'll take a potato chip... and INSTALL ARCH LINUX!" - Light Yagami
 

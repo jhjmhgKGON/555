@@ -1,5 +1,5 @@
-#!/bin/bash
-# Common utilities - logging, execution, password handling
+#!/usr/bin/env bash
+# 🍎 KIRA INSTALLER — Common Utilities (Logging, Execution, Passwords)
 
 # ======================================================================
 # LOGGING
