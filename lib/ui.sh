@@ -60,7 +60,7 @@ ui_optimize_mirrors() {
             --latest 10 \
             --protocol https \
             --sort rate \
-            --download-timeout 10 \
+            --download-timeout 20 \
             --save /etc/pacman.d/mirrorlist \
             || log "WARNING" "reflector failed, using default mirrorlist"
     else
@@ -68,7 +68,7 @@ ui_optimize_mirrors() {
             --latest 10 \
             --protocol https \
             --sort rate \
-            --download-timeout 10 \
+            --download-timeout 20 \
             --save /etc/pacman.d/mirrorlist \
             || log "WARNING" "reflector failed, using default mirrorlist"
     fi
