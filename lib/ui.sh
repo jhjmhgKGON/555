@@ -9,7 +9,7 @@ ui_show_banner() {
     ╔════════════════════════════════════════════════════╗
     ║                                                    ║
     ║         Neok1ra's ARCH LINUX INSTALLER             ║
-    ║     "I'll take a potato chip... and INSTALL!"      ║
+    ║     \"I'll take a potato chip... and INSTALL!\"      ║
     ║                                                    ║
     ║     Version: $VERSION                           ║
     ║     Mode: $([ "$DRY_RUN" = "true" ] && echo "DRY RUN" || echo "LIVE")      ║
