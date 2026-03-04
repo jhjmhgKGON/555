@@ -42,22 +42,23 @@ ui_progress_pipe() {
 
 ui_optimize_mirrors() {
     log "INFO" "Optimizing mirrors..."
-    ui_progress 5 "Optimizing mirrors..."
+    ui_progress 5 "Optimizing mirrors..." || true
     
     if ! command -v reflector &>/dev/null; then
         log "WARNING" "reflector not found, skipping mirror optimization"
-        return 1
+        return 0
     fi
 
-    execute reflector \
+    if ! execute reflector \
         --latest 10 \
         --protocol https \
         --sort rate \
         --download-timeout 20 \
-        --save /etc/pacman.d/mirrorlist \
-        || log "WARNING" "Mirror optimization failed, using default mirrors"
-        
-    ui_progress 10 "Mirrors optimized"
+        --save /etc/pacman.d/mirrorlist; then
+        log "WARNING" "Mirror optimization failed, using default mirrors"
+    fi
+
+    ui_progress 10 "Mirrors optimized" || true
 }
 
 ui_confirm_installation() {

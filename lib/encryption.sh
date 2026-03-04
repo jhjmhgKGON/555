@@ -69,7 +69,7 @@ encryption_format() {
             local root_size="${ROOT_SIZE:-30G}"
             
             local vg_size
-            vg_size=$(vgdisplay vg0 2>/dev/null | grep "Total PE" | awk '{print $3}' || echo "0")
+            vg_size=$(vgdisplay vg0 2>/dev/null | grep "Total PE" | awk '{print $3}' 2>/dev/null || echo "0")
             if [ "$vg_size" -gt 0 ]; then
                 local vg_size_bytes=$((vg_size * 4 * 1024 * 1024))
                 local vg_size_gb=$((vg_size_bytes / 1024 / 1024 / 1024))

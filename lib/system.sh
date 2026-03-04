@@ -3,7 +3,7 @@
 
 system_detect_gpu() {
     local vendor
-    vendor=$(lspci | grep -E "VGA|3D" | grep -i -o -E "nvidia|amd|intel" | head -1 | tr '[:upper:]' '[:lower:]')
+    vendor=$(lspci 2>/dev/null | grep -E "VGA|3D" | grep -i -o -E "nvidia|amd|intel" | head -1 | tr '[:upper:]' '[:lower:]' || true)
     case $vendor in
         nvidia) GPU_DRIVERS=("nvidia" "nvidia-utils") ;;
         amd)    GPU_DRIVERS=("xf86-video-amdgpu" "vulkan-radeon") ;;
