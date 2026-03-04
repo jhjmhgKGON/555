@@ -57,20 +57,20 @@ ui_optimize_mirrors() {
     if [ -n "$country" ]; then
         execute reflector \
             --country "$country" \
-            --latest 10 \
+            --latest 5 \
             --protocol https \
             --sort rate \
             --download-timeout 20 \
             --save /etc/pacman.d/mirrorlist \
-            || log "WARNING" "reflector failed, using default mirrorlist"
+            || log "WARNING" "Mirror optimization failed, using default mirrors"
     else
         execute reflector \
-            --latest 10 \
+            --latest 5 \
             --protocol https \
             --sort rate \
             --download-timeout 20 \
             --save /etc/pacman.d/mirrorlist \
-            || log "WARNING" "reflector failed, using default mirrorlist"
+            || log "WARNING" "Mirror optimization failed, using default mirrors"
     fi
     
     ui_progress 10 "Mirrors optimized"
