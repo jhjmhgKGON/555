@@ -8,11 +8,11 @@ ui_show_banner() {
     whiptail --title "⚖️ KIRA ARCH INSTALLER ⚖️" --msgbox "
     ╔════════════════════════════════════════════════════╗
     ║                                                    ║
-    ║     LIGHT YAGAMI'S ARCH LINUX INSTALLER           ║
-    ║     \"I'll take a potato chip... and INSTALL!\"    ║
+    ║         Neok1ra's ARCH LINUX INSTALLER             ║
+    ║     "I'll take a potato chip... and INSTALL!"      ║
     ║                                                    ║
-    ║     Version: $VERSION                             ║
-    ║     Mode: $([ "$DRY_RUN" = "true" ] && echo "DRY RUN" || echo "LIVE")        ║
+    ║     Version: $VERSION                           ║
+    ║     Mode: $([ "$DRY_RUN" = "true" ] && echo "DRY RUN" || echo "LIVE")      ║
     ║                                                    ║
     ╚════════════════════════════════════════════════════╝
     
