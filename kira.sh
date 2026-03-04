@@ -168,41 +168,85 @@ main() {
     test_network || exit 1
     
     if [ -z "${INSTALL_MODE:-}" ]; then
-        INSTALL_MODE=$(ui_menu "Installation Mode" \
-            "single" "Single Boot - Clean install" \
-            "dual" "Dual Boot - Alongside existing OS" \
-            "usb" "USB - Portable installation") || exit 1
+        INSTALL_MODE="single"
         export INSTALL_MODE
     fi
     log "INFO" "Installation mode: $INSTALL_MODE"
     
     ui_optimize_mirrors || log "WARNING" "Mirror optimization failed, using defaults"
     
-    if [ -z "${SELECTED_DISK:-}" ]; then
-        local valid_disks=$(lsblk -d -n -o NAME | grep -v -E "loop|sr|rom" | tr '\n' ' ')
-        SELECTED_DISK=$(ui_input "Available disks: $valid_disks\nEnter target disk (/dev/sdX):" "")
-        export SELECTED_DISK
-    else
-        log "INFO" "Using preseed disk: $SELECTED_DISK"
-    fi
-    
-    disk_validate "$SELECTED_DISK" || exit 1
-    
-    if [ "${NO_CONFIRM:-false}" != "true" ] && [ "${AUTO:-false}" != "true" ]; then
-        ui_yesno "WARNING: This will DESTROY ALL DATA on $SELECTED_DISK. Continue?" || exit 1
-    fi
-    
     bootloader_detect_microcode
     system_detect_gpu
     
+    # Preseed override
     if [ -z "${ENCRYPTION:-}" ]; then
-        encryption_setup
+        # Default empty, set by menu
+        :
     else
         log "INFO" "Using preseed encryption: $ENCRYPTION"
         if [ "$ENCRYPTION" != "none" ] && [ -z "${CRYPT_PASS:-}" ]; then
             get_password_confirm "Encryption passphrase" CRYPT_PASS
             export CRYPT_PASS
         fi
+    fi
+
+    if [ "${AUTO:-false}" = "true" ] && [ -n "${SELECTED_DISK:-}" ]; then
+        log "INFO" "AUTO mode enabled, skipping menu."
+    else
+        while true; do
+            clear
+            echo "╔══════════════════════════════╗"
+            echo "║      KIRA INSTALLER          ║"
+            echo "╠══════════════════════════════╣"
+            echo "║ 1. Install Arch Linux        ║"
+            echo "║ 2. Disk Setup                ║"
+            echo "║ 3. Encryption (LUKS)         ║"
+            echo "║ 4. Exit                      ║"
+            echo "╚══════════════════════════════╝"
+            echo ""
+            read -r -p "Select option: " choice
+            
+            case "$choice" in
+                1)
+                    if [ -z "${SELECTED_DISK:-}" ]; then
+                        echo "ERROR: Please complete Disk Setup prior to installation."
+                        sleep 2
+                        continue
+                    fi
+                    break
+                    ;;
+                2)
+                    local valid_disks=$(lsblk -d -n -o NAME | grep -v -E "loop|sr|rom" | tr '\n' ' ')
+                    local target=$(ui_input "Available disks: $valid_disks\nEnter target disk (/dev/sdX):" "")
+                    if [ -n "$target" ]; then
+                        if disk_validate "$target"; then
+                            if [ "${NO_CONFIRM:-false}" != "true" ]; then
+                                if ui_yesno "WARNING: This will DESTROY ALL DATA on $target. Continue?"; then
+                                    SELECTED_DISK="$target"
+                                    export SELECTED_DISK
+                                fi
+                            else
+                                SELECTED_DISK="$target"
+                                export SELECTED_DISK
+                            fi
+                        else
+                            sleep 2
+                        fi
+                    fi
+                    ;;
+                3)
+                    encryption_setup
+                    ;;
+                4)
+                    echo "Exiting..."
+                    exit 0
+                    ;;
+                *)
+                    echo "Invalid option."
+                    sleep 1
+                    ;;
+            esac
+        done
     fi
     
     [ -z "${HOSTNAME:-}" ] && HOSTNAME=$(ui_input "Hostname" "kira-arch") && export HOSTNAME
