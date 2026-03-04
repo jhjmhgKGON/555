@@ -160,8 +160,7 @@ test_network() {
 # MAIN INSTALLATION FLOW
 # ======================================================================
 main() {
-    local preseed_loaded=false
-    load_preseed && preseed_loaded=true
+    load_preseed || true
     
     if [ "${NO_BANNER:-false}" != "true" ]; then
         ui_show_banner || exit 1
@@ -215,8 +214,10 @@ main() {
                     break
                     ;;
                 2)
-                    local valid_disks=$(lsblk -d -n -o NAME | grep -v -E "loop|sr|rom" | tr '\n' ' ')
-                    local target=$(ui_input "Available disks: $valid_disks\nEnter target disk (/dev/sdX):" "")
+                    local valid_disks
+                    valid_disks=$(lsblk -d -n -o NAME | grep -v -E "loop|sr|rom" | tr '\n' ' ')
+                    local target
+                    target=$(ui_input "Available disks: $valid_disks\nEnter target disk (/dev/sdX):" "")
                     if [ -n "$target" ]; then
                         if disk_validate "$target"; then
                             if [ "${NO_CONFIRM:-false}" != "true" ]; then

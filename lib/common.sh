@@ -7,7 +7,8 @@
 log() {
     local level="$1"
     local message="$2"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     message=$(echo "$message" | sed -E 's/(passphrase|password|CRYPT_PASS)=[^ ]*/\1=***REDACTED***/g')
     echo "[$timestamp] [$level] $message" >> "${LOG_FILE:-/tmp/kira-installer.log}"

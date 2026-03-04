@@ -2,7 +2,8 @@
 # System configuration - base install, mkinitcpio, users
 
 system_detect_gpu() {
-    local vendor=$(lspci | grep -E "VGA|3D" | grep -i -o -E "nvidia|amd|intel" | head -1 | tr '[:upper:]' '[:lower:]')
+    local vendor
+    vendor=$(lspci | grep -E "VGA|3D" | grep -i -o -E "nvidia|amd|intel" | head -1 | tr '[:upper:]' '[:lower:]')
     case $vendor in
         nvidia) GPU_DRIVERS=("nvidia" "nvidia-utils") ;;
         amd)    GPU_DRIVERS=("xf86-video-amdgpu" "vulkan-radeon") ;;
