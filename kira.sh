@@ -179,7 +179,8 @@ main() {
     ui_optimize_mirrors || log "WARNING" "Mirror optimization failed, using defaults"
     
     if [ -z "${SELECTED_DISK:-}" ]; then
-        SELECTED_DISK=$(disk_select)
+        local valid_disks=$(lsblk -d -n -o NAME | grep -v -E "loop|sr|rom" | tr '\n' ' ')
+        SELECTED_DISK=$(ui_input "Available disks: $valid_disks\nEnter target disk (/dev/sdX):" "")
         export SELECTED_DISK
     else
         log "INFO" "Using preseed disk: $SELECTED_DISK"
@@ -188,7 +189,7 @@ main() {
     disk_validate "$SELECTED_DISK" || exit 1
     
     if [ "${NO_CONFIRM:-false}" != "true" ] && [ "${AUTO:-false}" != "true" ]; then
-        disk_confirm "$SELECTED_DISK" || exit 1
+        ui_yesno "WARNING: This will DESTROY ALL DATA on $SELECTED_DISK. Continue?" || exit 1
     fi
     
     bootloader_detect_microcode
@@ -226,13 +227,13 @@ main() {
     
     (
         ui_progress 10 "Creating partitions..."
-        disk_create_partitions "$SELECTED_DISK"
+        disk_partition
         
-        ui_progress 20 "Setting up encryption..."
-        encryption_format
+        ui_progress 20 "Formatting partitions..."
+        disk_format
         
         ui_progress 30 "Mounting partitions..."
-        disk_mount_partitions
+        disk_mount
         
         ui_progress 40 "Installing base system..."
         system_install_base
