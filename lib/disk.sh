@@ -23,7 +23,7 @@ get_partition() {
 # ======================================================================
 
 disk_get_valid() {
-    lsblk -d -o NAME,SIZE,MODEL -n | grep -v -E "loop|sr|rom" | awk '{print $1 " " $2 " " $3}'
+    lsblk -d -o NAME,SIZE,MODEL -n | grep -v -E "loop|sr|rom"
 }
 
 disk_select() {
@@ -47,7 +47,8 @@ disk_select() {
             "${disk_array[@]}" \
             3>&1 1>&2 2>&3)
         if [ -n "$selected" ]; then
-            echo "/dev/$(echo "$selected" | awk '{print $1}')"
+            device=$(echo "$selected" | awk '{print $1}')
+            echo "/dev/$device"
             break
         fi
     done
