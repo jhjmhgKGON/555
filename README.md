@@ -2,8 +2,8 @@
     <img src="https://media.giphy.com/media/YmZOBDYBcmWK4/giphy.gif" width="100%" alt="Kira Hero">
 </p>
 
-# <div align="center">𝕶𝕴𝕽𝕬 𝕴𝕹𝕾𝕿𝕬𝕷𝕷𝕰𝕽</div>
-### <div align="center">𝕿𝖍𝖊 𝕬𝖇𝖘𝖔𝖑𝖚𝖙𝖊 𝕬𝖗𝖈𝖍 𝕷𝖎𝖓𝖚𝖝 𝕰𝖝𝖊𝖈𝖚𝖙𝖎𝖔𝖓</div>
+# <div align="center">𝕶IRA 𝕴NSTALLER</div>
+### <div align="center">𝕿he 𝕬bsolute 𝕬rch 𝕷inux 𝕰xecution</div>
 
 <div align="center">
 *"I'll take a potato chip... and INSTALL ARCH LINUX!"*
@@ -24,7 +24,7 @@
 <table width="100%" style="border: none;">
     <tr>
         <td width="50%" align="center">
-            <h2>𝕯𝖎𝖛𝖎𝖓𝖊 𝕬𝖚𝖙𝖔𝖒𝖆𝖙𝖎𝖔𝖓</h2>
+            <h2>𝕯ivine 𝕬utomation</h2>
             <img src="https://media.giphy.com/media/o2KLYPem407CM/giphy.gif" width="100%" style="border-radius: 8px;" alt="Writing names">
         </td>
         <td width="50%" align="left">
@@ -44,15 +44,15 @@
 
 ---
 
-## 📜 𝕿𝖍𝖊 𝕽𝖚𝖑𝖊𝖘 𝖔𝖋 𝕰𝖝𝖊𝖈𝖚𝖙𝖎𝖔𝖓 (𝕼𝖚𝖎𝖈𝖐 𝕾𝖙𝖆𝖗𝖙)
+## 📜 𝕿he 𝕽ules of 𝕰xecution (𝕼uick 𝕾tart)
 
-### 1. 𝕿𝖍𝖊 𝕻𝖗𝖊𝖕𝖆𝖗𝖆𝖙𝖎𝖔𝖓
+### 1. 𝕿he 𝕻reparation
 Boot into the official Arch Linux installation media and confirm your connection to the outside world.
 ```bash
 ping archlinux.org -c 3
 ```
 
-### 2. 𝕻𝖗𝖔𝖈𝖚𝖗𝖊 𝖙𝖍𝖊 𝕯𝖊𝖆𝖙𝖍 𝕹𝖔𝖙𝖊
+### 2. 𝕻rocure the 𝕯eath 𝕹ote
 Bring the script down from your repository.
 ```bash
 git clone https://github.com/jhjmhgKGON/555.git kira-installer
@@ -60,7 +60,7 @@ cd kira-installer
 chmod +x kira.sh
 ```
 
-### 3. 𝕰𝖝𝖊𝖈𝖚𝖙𝖊 𝕵𝖚𝖉𝖌𝖒𝖊𝖓𝖙
+### 3. 𝕰xecute 𝕵udgment
 Even Kira needs root to change the world. Execute the script and let the judgment begin.
 ```bash
 sudo ./kira.sh
@@ -68,7 +68,7 @@ sudo ./kira.sh
 
 ---
 
-## 🧠 𝕻𝖗𝖊𝖘𝖊𝖊𝖉 (𝕬𝖚𝖙𝖔𝖒𝖆𝖙𝖊𝖉 𝕸𝖔𝖉𝖊)
+## 🧠 𝕻reseed (𝕬utomated 𝕸ode)
 Don't want to answer questions? Want to mass-install? Use a **Preseed**. By providing a `.conf` file, KIRA will bypass the interface and silently execute your precise will.
 
 ```bash
@@ -84,7 +84,7 @@ sudo ./kira.sh --preseed preseed/production.conf
 
 ---
 
-## 🧩 𝕿𝖍𝖊 𝕬𝖗𝖈𝖍𝖎𝖙𝖊𝖈𝖙𝖚𝖗𝖊
+## 🧩 𝕿he 𝕬rchitecture
 <table width="100%" style="border: none;">
     <tr>
         <td width="50%" align="left">
@@ -111,9 +111,9 @@ sudo ./kira.sh --preseed preseed/production.conf
     </a>
 </p>
 
-## ⚠️ 𝕯𝖎𝖘𝖈𝖑𝖆𝖎𝖒𝖊𝖗
+## ⚠️ 𝕯isclaimer
 **DATA OBLITERATION:** Executing KIRA **WILL FORMAT AND DESTROY ALL PREVIOUS DATA ON THE TARGET DISK**. Be absolute in your targets. Understand the consequences. Unlike Shinigami eyes, you cannot buy back your wiped data with half your life!
 
 <br>
 
-### <div align="center">"𝕿𝖍𝖎𝖘 𝖘𝖞𝖘𝖙𝖊𝖒 𝖎𝖘 𝖒𝖎𝖓𝖊. 𝕴𝖙𝖘 𝖋𝖔𝖚𝖓𝖉𝖆𝖙𝖎𝖔𝖓𝖘, 𝖎𝖙𝖘 𝖇𝖔𝖔𝖙𝖑𝖔𝖆𝖉𝖊𝖗, 𝖎𝖙𝖘 𝖋𝖎𝖑𝖊𝖘𝖞𝖘𝖙𝖊𝖒𝖘..." 🍎</div>
+### <div align="center">"𝕿his system is mine. 𝕴ts foundations, its bootloader, its filesystems..." 🍎</div>
