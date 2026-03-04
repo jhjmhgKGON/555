@@ -17,12 +17,18 @@ bootloader_target_mode() {
 }
 
 bootloader_install() {
-    local encrypted_part=$(cat "$STATE_DIR/encrypted-part" 2>/dev/null)
-    [ -z "$encrypted_part" ] && [ -n "${ENCRYPTED_PART:-}" ] && encrypted_part="$ENCRYPTED_PART"
-    [ -z "$encrypted_part" ] && log "ERROR" "Cannot determine encrypted partition" && return 1
-    
-    local uuid=$(blkid -s UUID -o value "$encrypted_part" 2>/dev/null)
-    [ -z "$uuid" ] && log "ERROR" "Failed to get UUID for $encrypted_part" && return 1
+    local uuid=""
+
+    if [ "${ENCRYPTION:-none}" != "none" ]; then
+        local encrypted_part=$(cat "$STATE_DIR/encrypted-part" 2>/dev/null)
+        [ -z "$encrypted_part" ] && [ -n "${ENCRYPTED_PART:-}" ] && encrypted_part="$ENCRYPTED_PART"
+        [ -z "$encrypted_part" ] && log "ERROR" "Cannot determine encrypted partition" && return 1
+        uuid=$(blkid -s UUID -o value "$encrypted_part" 2>/dev/null)
+        [ -z "$uuid" ] && log "ERROR" "Failed to get UUID for $encrypted_part" && return 1
+    else
+        uuid=$(blkid -s UUID -o value "$ROOT_PART" 2>/dev/null)
+        [ -z "$uuid" ] && log "ERROR" "Failed to get UUID for $ROOT_PART" && return 1
+    fi
     
     local target_mode=$(bootloader_target_mode "/mnt")
     log "INFO" "Target boot mode: $target_mode"

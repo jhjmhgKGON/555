@@ -1,36 +1,5 @@
-#!/usr/bin/env bash
-set -Eeuo pipefail
-
-# ==========================================
-# Logging
-# ==========================================
-
-log() {
-    echo "[INFO] $*"
-}
-
-error() {
-    echo "[ERROR] $*" >&2
-    exit 1
-}
-
-# ==========================================
-# Retry helper
-# ==========================================
-
-retry() {
-    local attempts=5
-    local count=0
-
-    until "$@"; do
-        ((count++))
-        if ((count >= attempts)); then
-            error "Command failed after $attempts attempts: $*"
-        fi
-        log "Retrying command..."
-        sleep 2
-    done
-}
+#!/bin/bash
+# Disk operations - validate, partition, format, mount
 
 # ==========================================
 # Disk validation

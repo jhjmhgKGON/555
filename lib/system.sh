@@ -42,43 +42,47 @@ system_install_base() {
 }
 
 system_configure_mkinitcpio() {
-    local hooks="HOOKS=(base udev autodetect modconf keyboard keymap consolefont block"
+    local hooks="base udev autodetect modconf keyboard keymap consolefont block"
 
-    if [ "$ENCRYPTION" != "none" ]; then
+    if [ "${ENCRYPTION:-none}" != "none" ]; then
         hooks="$hooks encrypt"
     fi
 
-    if [ "$ENCRYPTION" = "luks2+lvm" ]; then
+    if [ "${ENCRYPTION:-none}" = "luks2+lvm" ]; then
         hooks="$hooks lvm2"
     fi
 
-    hooks="$hooks filesystems fsck)"
+    hooks="$hooks filesystems fsck"
 
-    chroot_exec "/mnt" "
-        sed -i 's/^HOOKS=.*/$hooks/' /etc/mkinitcpio.conf
-        mkinitcpio -P
-    "
+    # Write mkinitcpio.conf directly to avoid heredoc quoting issues
+    sed -i "s|^HOOKS=.*|HOOKS=($hooks)|" /mnt/etc/mkinitcpio.conf
+    arch-chroot /mnt mkinitcpio -P
 }
 
 system_configure() {
+    # Write hostname and hosts
+    echo "$HOSTNAME" > /mnt/etc/hostname
+    cat > /mnt/etc/hosts <<EOF
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}
+EOF
+
     chroot_exec "/mnt" "
         ln -sf /usr/share/zoneinfo/UTC /etc/localtime
         hwclock --systohc
         echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
         locale-gen
         echo 'LANG=en_US.UTF-8' > /etc/locale.conf
-        echo '$HOSTNAME' > /etc/hostname
-        cat > /etc/hosts << HOSTS
-127.0.0.1   localhost
-::1         localhost
-127.0.1.1   $HOSTNAME.localdomain $HOSTNAME
-HOSTS
         systemctl enable NetworkManager
-        echo 'root:$USERPASS' | chpasswd
-        useradd -m -G wheel -s /bin/bash '$USERNAME'
-        echo '$USERNAME:$USERPASS' | chpasswd
-        echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-wheel
     "
-    
+
+    # Set passwords and create user outside heredoc to expand correctly
+    echo "root:${USERPASS}" | arch-chroot /mnt chpasswd
+    arch-chroot /mnt useradd -m -G wheel -s /bin/bash "${USERNAME}"
+    echo "${USERNAME}:${USERPASS}" | arch-chroot /mnt chpasswd
+    echo '%wheel ALL=(ALL:ALL) ALL' > /mnt/etc/sudoers.d/10-wheel
+    chmod 440 /mnt/etc/sudoers.d/10-wheel
+
     system_configure_mkinitcpio
 }

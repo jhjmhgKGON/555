@@ -60,7 +60,7 @@ cleanup_on_exit() {
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
         log "ERROR" "Installation failed with code $exit_code! Cleaning up..."
-        disk_unmount_cleanup
+        umount -R /mnt 2>/dev/null || true
     else
         log "INFO" "Installation completed successfully"
     fi
@@ -110,14 +110,16 @@ validate_required_vars() {
     [ -z "${USERNAME:-}" ] && log "ERROR" "USERNAME required" && missing=1
     [ -z "${HOSTNAME:-}" ] && log "ERROR" "HOSTNAME required" && missing=1
     [ -z "${INSTALL_MODE:-}" ] && log "ERROR" "INSTALL_MODE required" && missing=1
+    
+    ENCRYPTION="${ENCRYPTION:-none}"
     validate_encryption_value "$ENCRYPTION" || missing=1
     
-    if [ "$ENCRYPTION" != "none" ] && [ -z "${CRYPT_PASS:-}" ] && [ "$AUTO" = "true" ]; then
+    if [ "$ENCRYPTION" != "none" ] && [ -z "${CRYPT_PASS:-}" ] && [ "${AUTO:-false}" = "true" ]; then
         log "ERROR" "Encryption enabled but CRYPT_PASS not set in preseed (AUTO mode)"
         missing=1
     fi
     
-    if [ -z "${USERPASS:-}" ] && [ "$AUTO" = "true" ]; then
+    if [ -z "${USERPASS:-}" ] && [ "${AUTO:-false}" = "true" ]; then
         log "ERROR" "USERPASS not set in preseed (AUTO mode)"
         missing=1
     fi
@@ -178,17 +180,14 @@ main() {
     bootloader_detect_microcode
     system_detect_gpu
     
-    # Preseed override
-    if [ -z "${ENCRYPTION:-}" ]; then
-        # Default empty, set by menu
-        :
-    else
+    # Preseed override — ensure ENCRYPTION has a safe default
+    ENCRYPTION="${ENCRYPTION:-none}"
+    if [ "$ENCRYPTION" != "none" ] && [ -z "${CRYPT_PASS:-}" ]; then
         log "INFO" "Using preseed encryption: $ENCRYPTION"
-        if [ "$ENCRYPTION" != "none" ] && [ -z "${CRYPT_PASS:-}" ]; then
-            get_password_confirm "Encryption passphrase" CRYPT_PASS
-            export CRYPT_PASS
-        fi
+        get_password_confirm "Encryption passphrase" CRYPT_PASS
+        export CRYPT_PASS
     fi
+    export ENCRYPTION
 
     if [ "${AUTO:-false}" = "true" ] && [ -n "${SELECTED_DISK:-}" ]; then
         log "INFO" "AUTO mode enabled, skipping menu."
