@@ -23,7 +23,11 @@ get_partition() {
 # ======================================================================
 
 disk_get_valid() {
-    lsblk -d -o NAME,SIZE,MODEL -n | grep -v -E "loop|sr|rom"
+    for disk in $(lsblk -d -n -o NAME | grep -v -E "loop|sr|rom"); do
+        local size=$(lsblk -d -n -o SIZE "/dev/$disk" | tr -d ' ')
+        local model=$(lsblk -d -n -o MODEL "/dev/$disk" | sed 's/^[ \t]*//;s/[ \t]*$//')
+        echo "$disk $size $model"
+    done
 }
 
 disk_select() {
