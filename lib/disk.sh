@@ -1,188 +1,91 @@
-#!/bin/bash
-# Disk operations - detection, partitioning, mounting
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-# ======================================================================
-# HELPER FUNCTIONS - NVMe SUPPORT
-# ======================================================================
+# ==========================================
+# Logging
+# ==========================================
 
-get_partition() {
-    local disk="$1"
-    local part_num="$2"
-    
-    if [[ "$disk" =~ nvme[0-9]+n[0-9]+$ ]]; then
-        echo "${disk}p${part_num}"
-    elif [[ "$disk" =~ /dev/[a-z]+$ ]] || [[ "$disk" =~ /dev/[a-z]+[a-z]+$ ]]; then
-        echo "${disk}${part_num}"
-    else
-        echo "${disk}${part_num}"
-    fi
+log() {
+    echo "[INFO] $*"
 }
 
-# ======================================================================
-# DISK DETECTION
-# ======================================================================
+error() {
+    echo "[ERROR] $*" >&2
+    exit 1
+}
 
-disk_get_valid() {
-    for disk in $(lsblk -d -n -o NAME | grep -v -E "loop|sr|rom"); do
-        local size=$(lsblk -d -n -o SIZE "/dev/$disk" | tr -d ' ')
-        local model=$(lsblk -d -n -o MODEL "/dev/$disk" | sed 's/^[ \t]*//;s/[ \t]*$//')
-        echo "$disk $size $model"
+# ==========================================
+# Retry helper
+# ==========================================
+
+retry() {
+    local attempts=5
+    local count=0
+
+    until "$@"; do
+        ((count++))
+        if ((count >= attempts)); then
+            error "Command failed after $attempts attempts: $*"
+        fi
+        log "Retrying command..."
+        sleep 2
     done
 }
 
-disk_select() {
-
-    local options=()
-
-    while read -r name size model; do
-        options+=("$name" "$size $model")
-    done < <(lsblk -d -o NAME,SIZE,MODEL -n | grep -v -E "loop|sr|rom")
-
-    if [ ${#options[@]} -eq 0 ]; then
-        whiptail --msgbox "No valid disks found!" 8 60
-        exit 1
-    fi
-
-    local selected=$(whiptail \
-        --title "💿 DISK SELECTION" \
-        --menu "Select target disk:" \
-        20 70 10 \
-        "${options[@]}" \
-        3>&1 1>&2 2>&3)
-
-    if [ -n "$selected" ]; then
-        disk=$(echo "$selected" | awk '{print $1}')
-        echo "/dev/$disk"
-    else
-        echo ""
-    fi
-}
-
-# ======================================================================
-# DISK VALIDATION
-# ======================================================================
+# ==========================================
+# Disk validation
+# ==========================================
 
 disk_validate() {
-    local disk="$1"
-    if [ ! -b "$disk" ]; then
-        log "ERROR" "Invalid disk: $disk"
-        return 1
+
+    DISK="$1"
+
+    [[ -b "$DISK" ]] || error "Invalid disk device: $DISK"
+
+    if mount | grep -q "$DISK"; then
+        error "Disk already mounted"
     fi
-    
-    local mounted=$(lsblk -nr -o MOUNTPOINT "$disk" | grep -c '[^[:space:]]')
-    if [ "$mounted" -gt 0 ]; then
-        log "ERROR" "Disk $disk has mounted partitions:"
-        lsblk "$disk" -o NAME,MOUNTPOINT | grep -v '^$' | while read line; do
-            log "ERROR" "  $line"
-        done
-        return 1
-    fi
-    
-    log "INFO" "Disk validation passed: $disk"
-    return 0
+
+    log "Disk validated: $DISK"
 }
 
-disk_confirm() {
-    local disk="$1"
-    local model=$(lsblk -d -o MODEL "$disk" | tail -1 | xargs)
-    local info=$(lsblk -d -o NAME,SIZE,MODEL,SERIAL "$disk" | tail -1)
-    
-    whiptail --title "⚠️ CONFIRMATION ⚠️" --yesno \
-        "Disk: $disk\nModel: $model\n$info\n\nALL DATA WILL BE DESTROYED\n\nType model to confirm:" 15 70
-    
-    local confirm=$(whiptail --inputbox "Type disk model:\n($model)" 10 60 3>&1 1>&2 2>&3)
-    if [ "$confirm" = "$model" ]; then
-        return 0
-    else
-        whiptail --msgbox "❌ Mismatch! Aborting." 8 60
-        return 1
-    fi
+# ==========================================
+# Partition disk
+# ==========================================
+
+disk_partition() {
+
+    log "Wiping disk"
+
+    retry wipefs -af "$DISK"
+
+    retry parted -s "$DISK" mklabel gpt
+
+    log "Creating boot partition"
+
+    retry parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
+    retry parted -s "$DISK" set 1 esp on
+
+    log "Creating root partition"
+
+    retry parted -s "$DISK" mkpart primary ext4 513MiB 100%
+
+    sleep 2
+    partprobe "$DISK"
+    udevadm settle
+
+    detect_partitions
 }
 
-# ======================================================================
-# GET DISK SIZE
-# ======================================================================
+# ==========================================
+# Detect partitions safely
+# ==========================================
 
-get_disk_size_gb() {
-    local disk="$1"
-    local size_bytes=$(lsblk -b -d -o SIZE "$disk" | tail -1)
-    echo $((size_bytes / 1024 / 1024 / 1024))
-}
+detect_partitions() {
 
-# ======================================================================
-# PARTITIONING
-# ======================================================================
+    BOOT_PART=""
+    ROOT_PART=""
 
-disk_create_partitions() {
-    local DISK="$1"
-    ui_progress 15 "Creating partitions..."
-
-    if [ -d /sys/firmware/efi ]; then
-        # =========================
-        # UEFI (GPT)
-        # =========================
-        execute parted -s "$DISK" mklabel gpt
-
-        case "$ENCRYPTION" in
-            luks2)
-                # create partitions
-                execute parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
-                execute parted -s "$DISK" set 1 esp on
-                execute parted -s "$DISK" mkpart primary 513MiB 100%
-
-                ;;
-            luks2+lvm)
-                # create partitions
-                execute parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
-                execute parted -s "$DISK" set 1 esp on
-                execute parted -s "$DISK" mkpart primary 513MiB 100%
-                execute parted -s "$DISK" set 2 lvm on
-
-                ;;
-            *)
-                # create partitions
-                execute parted -s "$DISK" mkpart ESP fat32 1MiB 513MiB
-                execute parted -s "$DISK" set 1 esp on
-                execute parted -s "$DISK" mkpart primary ext4 513MiB 100%
-
-                ;;
-        esac
-
-    else
-        # =========================
-        # BIOS (MBR)
-        # =========================
-        execute parted -s "$DISK" mklabel msdos
-
-        case "$ENCRYPTION" in
-            luks2|luks2+lvm)
-                # create partitions
-                execute parted -s "$DISK" mkpart primary 1MiB 100%
-                execute parted -s "$DISK" set 1 boot on
-
-                ;;
-            *)
-                # create partitions
-                execute parted -s "$DISK" mkpart primary ext4 1MiB 100%
-                execute parted -s "$DISK" set 1 boot on
-
-                ;;
-        esac
-    fi
-
-    export BOOT_PART ROOT_PART LVM_PART
-
-    execute partprobe "$DISK" || true
-    udevadm settle || true
-
-    log "INFO" "Partitions created:"
-    log "INFO" "  BOOT=$BOOT_PART"
-    log "INFO" "  ROOT=$ROOT_PART"
-    log "INFO" "  LVM=$LVM_PART"
-
-    export BOOT_PART ROOT_PART LVM_PART
-
-    # Determine partition names
     if [[ "$DISK" == *"nvme"* ]] || [[ "$DISK" == *"mmcblk"* ]]; then
         BOOT_PART="${DISK}p1"
         ROOT_PART="${DISK}p2"
@@ -191,48 +94,45 @@ disk_create_partitions() {
         ROOT_PART="${DISK}2"
     fi
 
-    export BOOT_PART
-    export ROOT_PART
+    [[ -b "$BOOT_PART" ]] || error "Boot partition not found"
+    [[ -b "$ROOT_PART" ]] || error "Root partition not found"
+
+    export BOOT_PART ROOT_PART
+
+    log "Boot partition: $BOOT_PART"
+    log "Root partition: $ROOT_PART"
 }
 
-# ======================================================================
-# MOUNTING
-# ======================================================================
+# ==========================================
+# Format partitions
+# ==========================================
 
-disk_mount_partitions() {
-    ui_progress 30 "Mounting partitions..."
-    if [ -n "${ROOT_MAPPER:-}" ]; then
-        execute mount "$ROOT_MAPPER" /mnt
-    fi
-    if [ -n "${BOOT_PART:-}" ]; then
-        execute mkdir -p /mnt/boot
-        execute mount "$BOOT_PART" /mnt/boot
-    fi
-    if [ -n "${HOME_MAPPER:-}" ]; then
-        execute mkdir -p /mnt/home
-        execute mount "$HOME_MAPPER" /mnt/home
-    fi
+disk_format() {
+
+    log "Formatting boot partition"
+
+    retry mkfs.fat -F32 "$BOOT_PART"
+
+    log "Formatting root partition"
+
+    retry mkfs.ext4 -F "$ROOT_PART"
 }
 
-# ======================================================================
-# CLEANUP
-# ======================================================================
+# ==========================================
+# Mount partitions
+# ==========================================
 
-disk_unmount_cleanup() {
-    log "INFO" "Cleaning up..."
-    sync
-    
-    umount -R /mnt 2>/dev/null || true
-    
-    if [ -e /dev/mapper/cryptlvm ]; then
-        swapoff -a 2>/dev/null || true
-        cryptsetup close cryptlvm 2>/dev/null || true
-    fi
-    
-    if [ -e /dev/mapper/cryptroot ]; then
-        cryptsetup close cryptroot 2>/dev/null || true
-    fi
-    
-    vgchange -an 2>/dev/null || true
-    log "INFO" "Cleanup complete"
+disk_mount() {
+
+    log "Mounting root"
+
+    retry mount "$ROOT_PART" /mnt
+
+    mkdir -p /mnt/boot
+
+    log "Mounting boot"
+
+    retry mount "$BOOT_PART" /mnt/boot
+
+    log "Mount successful"
 }
