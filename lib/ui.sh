@@ -60,15 +60,17 @@ ui_optimize_mirrors() {
             --latest 10 \
             --protocol https \
             --sort rate \
-            --download-timeout 5 \
-            --save /etc/pacman.d/mirrorlist || log "WARNING" "reflector failed, using default mirrors"
+            --download-timeout 10 \
+            --save /etc/pacman.d/mirrorlist \
+            || log "WARNING" "reflector failed, using default mirrorlist"
     else
         execute reflector \
             --latest 10 \
             --protocol https \
             --sort rate \
-            --download-timeout 5 \
-            --save /etc/pacman.d/mirrorlist || log "WARNING" "reflector failed, using default mirrors"
+            --download-timeout 10 \
+            --save /etc/pacman.d/mirrorlist \
+            || log "WARNING" "reflector failed, using default mirrorlist"
     fi
     
     ui_progress 10 "Mirrors optimized"
