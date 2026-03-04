@@ -42,18 +42,18 @@ system_install_base() {
 }
 
 system_configure_mkinitcpio() {
-    local hooks="HOOKS=(base udev autodetect modconf block"
-    
+    local hooks="HOOKS=(base udev autodetect modconf keyboard keymap consolefont block"
+
     if [ "$ENCRYPTION" != "none" ]; then
         hooks="$hooks encrypt"
     fi
-    
+
     if [ "$ENCRYPTION" = "luks2+lvm" ]; then
         hooks="$hooks lvm2"
     fi
-    
-    hooks="$hooks filesystems keyboard fsck)"
-    
+
+    hooks="$hooks filesystems fsck)"
+
     chroot_exec "/mnt" "
         sed -i 's/^HOOKS=.*/$hooks/' /etc/mkinitcpio.conf
         mkinitcpio -P
