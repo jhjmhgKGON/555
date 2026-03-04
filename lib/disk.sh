@@ -131,8 +131,13 @@ disk_create_partitions() {
                 execute parted -s "$DISK" mkpart primary 513MiB 100%
 
                 # define partition variables
-                BOOT_PART=$(get_partition "$DISK" 1)
-                ROOT_PART=$(get_partition "$DISK" 2)
+                if [[ "$DISK" == *"nvme"* ]]; then
+                    BOOT_PART="${DISK}p1"
+                    ROOT_PART="${DISK}p2"
+                else
+                    BOOT_PART="${DISK}1"
+                    ROOT_PART="${DISK}2"
+                fi
                 LVM_PART=""
                 ;;
             luks2+lvm)
@@ -143,8 +148,13 @@ disk_create_partitions() {
                 execute parted -s "$DISK" set 2 lvm on
 
                 # define partition variables
-                BOOT_PART=$(get_partition "$DISK" 1)
-                LVM_PART=$(get_partition "$DISK" 2)
+                if [[ "$DISK" == *"nvme"* ]]; then
+                    BOOT_PART="${DISK}p1"
+                    LVM_PART="${DISK}p2"
+                else
+                    BOOT_PART="${DISK}1"
+                    LVM_PART="${DISK}2"
+                fi
                 ROOT_PART=""
                 ;;
             *)
@@ -154,8 +164,13 @@ disk_create_partitions() {
                 execute parted -s "$DISK" mkpart primary ext4 513MiB 100%
 
                 # define partition variables
-                BOOT_PART=$(get_partition "$DISK" 1)
-                ROOT_PART=$(get_partition "$DISK" 2)
+                if [[ "$DISK" == *"nvme"* ]]; then
+                    BOOT_PART="${DISK}p1"
+                    ROOT_PART="${DISK}p2"
+                else
+                    BOOT_PART="${DISK}1"
+                    ROOT_PART="${DISK}2"
+                fi
                 LVM_PART=""
                 ;;
         esac
@@ -173,7 +188,11 @@ disk_create_partitions() {
                 execute parted -s "$DISK" set 1 boot on
 
                 # define partition variables
-                LVM_PART=$(get_partition "$DISK" 1)
+                if [[ "$DISK" == *"nvme"* ]]; then
+                    LVM_PART="${DISK}p1"
+                else
+                    LVM_PART="${DISK}1"
+                fi
                 ROOT_PART=""
                 ;;
             *)
@@ -182,11 +201,17 @@ disk_create_partitions() {
                 execute parted -s "$DISK" set 1 boot on
 
                 # define partition variables
-                ROOT_PART=$(get_partition "$DISK" 1)
+                if [[ "$DISK" == *"nvme"* ]]; then
+                    ROOT_PART="${DISK}p1"
+                else
+                    ROOT_PART="${DISK}1"
+                fi
                 LVM_PART=""
                 ;;
         esac
     fi
+
+    export BOOT_PART ROOT_PART LVM_PART
 
     execute partprobe "$DISK" || true
     udevadm settle || true
