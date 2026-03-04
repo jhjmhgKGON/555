@@ -1,0 +1,84 @@
+#!/bin/bash
+# System configuration - base install, mkinitcpio, users
+
+system_detect_gpu() {
+    local vendor=$(lspci | grep -E "VGA|3D" | grep -i -o -E "nvidia|amd|intel" | head -1 | tr '[:upper:]' '[:lower:]')
+    case $vendor in
+        nvidia) GPU_DRIVERS=("nvidia" "nvidia-utils") ;;
+        amd)    GPU_DRIVERS=("xf86-video-amdgpu" "vulkan-radeon") ;;
+        intel)  GPU_DRIVERS=("xf86-video-intel" "vulkan-intel") ;;
+        *)      GPU_DRIVERS=("mesa") ;;
+    esac
+    export GPU_DRIVERS
+}
+
+system_install_base() {
+    local packages=("base" "base-devel" "linux" "linux-firmware")
+    
+    if [ -n "${MICROCODE:-}" ]; then
+        packages+=("$MICROCODE")
+    fi
+    
+    packages+=("${GPU_DRIVERS[@]}")
+    
+    if [ "$ENCRYPTION" = "luks2+lvm" ]; then
+        packages+=("lvm2")
+    fi
+    
+    if [ ! -d /sys/firmware/efi ]; then
+        packages+=("grub")
+        log "INFO" "Adding GRUB package for BIOS boot"
+    fi
+    
+    if [ "$INSTALL_MODE" = "dual" ]; then
+        packages+=("os-prober")
+        log "INFO" "Adding os-prober for dual boot detection"
+    fi
+    
+    packages+=("networkmanager")
+    
+    log "INFO" "Installing packages: ${packages[*]}"
+    execute pacstrap /mnt "${packages[@]}"
+}
+
+system_configure_mkinitcpio() {
+    local hooks="HOOKS=(base udev autodetect modconf block"
+    
+    if [ "$ENCRYPTION" != "none" ]; then
+        hooks="$hooks encrypt"
+    fi
+    
+    if [ "$ENCRYPTION" = "luks2+lvm" ]; then
+        hooks="$hooks lvm2"
+    fi
+    
+    hooks="$hooks filesystems keyboard fsck)"
+    
+    chroot_exec "/mnt" "
+        sed -i 's/^HOOKS=.*/$hooks/' /etc/mkinitcpio.conf
+        mkinitcpio -P
+    "
+}
+
+system_configure() {
+    chroot_exec "/mnt" "
+        ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+        hwclock --systohc
+        echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
+        locale-gen
+        echo 'LANG=en_US.UTF-8' > /etc/locale.conf
+        echo '$HOSTNAME' > /etc/hostname
+        cat > /etc/hosts << HOSTS
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   $HOSTNAME.localdomain $HOSTNAME
+HOSTS
+        systemctl enable NetworkManager
+        echo 'root:$USERPASS' | chpasswd
+        useradd -m -G wheel -s /bin/bash '$USERNAME'
+        echo '$USERNAME:$USERPASS' | chpasswd
+        echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-wheel
+    "
+    
+    system_configure_mkinitcpio
+}
