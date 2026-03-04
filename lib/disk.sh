@@ -36,13 +36,18 @@ disk_select() {
         
         local disk_array=()
         while IFS= read -r line; do
-            disk_array+=($line)
+            disk_array+=("$line")
         done <<< "$disks"
         
-        local selected=$(whiptail --title "💿 DISK SELECTION" --menu \
-            "Select target disk:" 20 70 10 "${disk_array[@]}" 3>&1 1>&2 2>&3)
+        local selected
+        selected=$(whiptail \
+            --title "💿 DISK SELECTION" \
+            --menu "Select target disk:" \
+            20 70 10 \
+            "${disk_array[@]}" \
+            3>&1 1>&2 2>&3)
         if [ -n "$selected" ]; then
-            echo "/dev/$selected"
+            echo "/dev/$(echo "$selected" | awk '{print $1}')"
             break
         fi
     done
