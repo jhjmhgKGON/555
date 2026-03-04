@@ -39,6 +39,7 @@
                     <li>🔐 <b>Impenetrable Encryption:</b> LUKS2 + LVM stealth.</li>
                     <li>📺 <b>Interactive TUI:</b> Whiptail menus do the talking.</li>
                     <li>🤖 <b>Preseed Support:</b> Point, click, walk away.</li>
+                    <li>🏎️ <b>Hardware Awareness:</b> Automated CPU microcode & GPU driver parsing.</li>
                 </ul>
             </td>
         </tr>
@@ -76,6 +77,28 @@ sudo ./kira.sh
 </td>
 </tr>
 </table>
+
+<br><br>
+
+<div align="center">
+    <h2>🧠 𝕻𝖗𝖊𝖘𝖊𝖊𝖉 (𝕬𝖚𝖙𝖔𝖒𝖆𝖙𝖊𝖉 𝕸𝖔𝖉𝖊)</h2>
+    <table width="100%" style="border: none;">
+        <tr style="border: none;">
+            <td width="100%" style="border: none; padding: 20px;">
+                <p>Don't want to answer questions? Want to mass-install? Use a <b>Preseed</b>. By providing a <code>.conf</code> file, KIRA will bypass the interface and silently execute your precise will.</p>
+                <br>
+```bash
+# Use the provided production configuration file
+sudo ./kira.sh --preseed preseed/production.conf
+```
+                <br>
+                <p><i>Tip: Check <code>preseed/production.conf</code> for a perfect template! You can enforce absolute automation using <code>AUTO=true</code>.</i></p>
+                <br>
+                <img src="https://media.giphy.com/media/o2KLYPem407CM/giphy.gif" width="100%" style="border-radius: 8px;" alt="Writing Names">
+            </td>
+        </tr>
+    </table>
+</div>
 
 <br><br>
 
