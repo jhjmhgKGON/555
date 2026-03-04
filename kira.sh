@@ -128,22 +128,30 @@ validate_required_vars() {
 # NETWORK TEST
 # ======================================================================
 test_network() {
-    log "INFO" "Testing network connectivity..."
-    
-    if command -v ping &>/dev/null; then
-        if ping -c 1 archlinux.org &>/dev/null; then
-            log "INFO" "Network connectivity confirmed"
+    while true; do
+        log "INFO" "Testing network connectivity..."
+
+        if command -v ping &>/dev/null; then
+            if ping -c 1 archlinux.org &>/dev/null; then
+                log "INFO" "Network connectivity confirmed"
+                return 0
+            fi
+        fi
+
+        if curl -s --max-time 5 https://archlinux.org >/dev/null; then
+            log "INFO" "Network connectivity confirmed via curl"
             return 0
         fi
-    fi
-    
-    if curl -s --max-time 5 http://archlinux.org >/dev/null; then
-        log "INFO" "Network connectivity confirmed via curl"
-        return 0
-    fi
-    
-    log "WARNING" "No internet connection detected. Installation may fail."
-    return 1
+
+        log "WARNING" "No internet connection detected"
+
+        if whiptail --yesno "Network connection not detected.\n\nRetry connection?" 10 60; then
+            log "INFO" "Retrying network test..."
+        else
+            log "ERROR" "Installation requires internet connection."
+            return 1
+        fi
+    done
 }
 
 # ======================================================================
@@ -157,7 +165,7 @@ main() {
         ui_show_banner || exit 1
     fi
     
-    test_network
+    test_network || exit 1
     
     if [ -z "${INSTALL_MODE:-}" ]; then
         INSTALL_MODE=$(ui_menu "Installation Mode" \
