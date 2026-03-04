@@ -48,31 +48,15 @@ ui_optimize_mirrors() {
         log "WARNING" "reflector not found, skipping mirror optimization"
         return 1
     fi
-    
-    local country="${MIRROR_COUNTRY:-}"
-    if [ -z "$country" ]; then
-        country=$(curl -s --max-time 5 http://ip-api.com/line?fields=countryCode 2>/dev/null || echo "")
-    fi
-    
-    if [ -n "$country" ]; then
-        execute reflector \
-            --country "$country" \
-            --latest 5 \
-            --protocol https \
-            --sort rate \
-            --download-timeout 20 \
-            --save /etc/pacman.d/mirrorlist \
-            || log "WARNING" "Mirror optimization failed, using default mirrors"
-    else
-        execute reflector \
-            --latest 5 \
-            --protocol https \
-            --sort rate \
-            --download-timeout 20 \
-            --save /etc/pacman.d/mirrorlist \
-            || log "WARNING" "Mirror optimization failed, using default mirrors"
-    fi
-    
+
+    execute reflector \
+        --latest 10 \
+        --protocol https \
+        --sort rate \
+        --download-timeout 20 \
+        --save /etc/pacman.d/mirrorlist \
+        || log "WARNING" "Mirror optimization failed, using default mirrors"
+        
     ui_progress 10 "Mirrors optimized"
 }
 
