@@ -31,31 +31,30 @@ disk_get_valid() {
 }
 
 disk_select() {
-    while true; do
-        local disks=$(disk_get_valid)
-        if [ -z "$disks" ]; then
-            whiptail --msgbox "No valid disks found!" 8 60
-            exit 1
-        fi
-        
-        local disk_array=()
-        while IFS= read -r line; do
-            disk_array+=("$line")
-        done <<< "$disks"
-        
-        local selected
-        selected=$(whiptail \
-            --title "💿 DISK SELECTION" \
-            --menu "Select target disk:" \
-            20 70 10 \
-            "${disk_array[@]}" \
-            3>&1 1>&2 2>&3)
-        if [ -n "$selected" ]; then
-            device=$(echo "$selected" | awk '{print $1}')
-            echo "/dev/$device"
-            break
-        fi
-    done
+
+    local options=()
+
+    while read -r name size model; do
+        options+=("$name" "$size $model")
+    done < <(lsblk -d -o NAME,SIZE,MODEL -n | grep -v -E "loop|sr|rom")
+
+    if [ ${#options[@]} -eq 0 ]; then
+        whiptail --msgbox "No valid disks found!" 8 60
+        exit 1
+    fi
+
+    local selected=$(whiptail \
+        --title "💿 DISK SELECTION" \
+        --menu "Select target disk:" \
+        20 70 10 \
+        "${options[@]}" \
+        3>&1 1>&2 2>&3)
+
+    if [ -n "$selected" ]; then
+        echo "/dev/$selected"
+    else
+        echo ""
+    fi
 }
 
 # ======================================================================
